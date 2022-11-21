@@ -1,0 +1,9 @@
+<ng-container *ngIf="imageLoad$ | async"></ng-container>
+<ng-container *ngIf="scaleChange | async"></ng-container>
+<div (click)="onClickFocus($event)" class="select-container">
+  <img #img [src]="src" alt="Select focus point." class="img" />
+  <div [style.left.%]="selectPosition.x" [style.top.%]="selectPosition.y" class="select"></div>
+</div>
+<form *ngIf="enableScale" [formGroup]="form">
+  <input formControlName="slider" max="5000" min="0" type="range" />
+</form>
