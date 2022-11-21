@@ -1,4 +1,4 @@
-import { ApplicationRef, Injectable } from "@angular/core";
+import {Injectable} from "@angular/core";
 
 interface Size {
   width: number;
@@ -14,7 +14,7 @@ export class OnResizeService {
   public elements: Array<HTMLElement> | undefined;
   private animationFrameHandle: undefined | any;
 
-  constructor(private app: ApplicationRef) {
+  constructor() {
   }
 
   public onResize(htmlElements: Array<HTMLElement>): Array<HTMLElement> {

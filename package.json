@@ -1,11 +1,14 @@
 {
   "name": "believablecreations",
-  "version": "0.0.0",
+  "version": "15.0.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:ngx-focus-point:library": "ng build @believablecreations/ngx-focus-point --configuration production",
+    "build:ngx-focus-point:library": "ng build @believablecreations/ngx-focus-point",
+    "test:ngx-focus-point:library": "ng test @believablecreations/ngx-focus-point",
+    "lint:ngx-focus-point:library": "ng lint @believablecreations/ngx-focus-point",
+    "publish:ngx-focus-point:library": "cd dist/ngx-focus-point && npm publish --access public",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
