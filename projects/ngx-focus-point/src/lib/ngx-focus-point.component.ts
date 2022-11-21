@@ -1,8 +1,18 @@
-import {Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges,} from '@angular/core';
-import {fromEvent, Subscription} from 'rxjs';
-import {tap} from 'rxjs/operators';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
+import { fromEvent, Subscription } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
-import {OnResizeService} from './on-resize.service';
+import { OnResizeService } from './on-resize.service';
 import {PlatformService} from './platform.service';
 
 @Component({
@@ -17,7 +27,7 @@ export class NgxFocusPointComponent implements OnInit, OnDestroy, OnChanges {
   @Input() focusX: number | undefined = 0.0;
   @Input() focusY: number | undefined = 0.0;
   @Input() animation: string | undefined;
-  @Input() scale = 1;
+  @Input() scale: number | undefined = 1;
   @Output() error = new EventEmitter<Event>();
   public maxWidth = 0;
   public maxHeight = 0;
@@ -237,7 +247,7 @@ export class NgxFocusPointComponent implements OnInit, OnDestroy, OnChanges {
       const Y = parseFloat(!this.focusY ? '0.0' : this.focusY.toString());
       const X = parseFloat(!this.focusX ? '0.0' : this.focusX.toString());
 
-      if (this.scale > 1) {
+      if (this.scale && this.scale > 1) {
         // TODO: find max edge.
         (this.MediaElement as HTMLElement).style.transform = `translateX(${
           this.scale * (X * -50)
