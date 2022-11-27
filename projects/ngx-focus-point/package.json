@@ -6,8 +6,8 @@
     "url": "https://github.com/believablecreations/believablecreations"
   },
   "peerDependencies": {
-    "@angular/common": "^15.0.0",
-    "@angular/core": "^15.0.0",
+    "@angular/common": "^15.0.1",
+    "@angular/core": "^15.0.1",
     "rxjs": "^7.5.7"
   }
 }
