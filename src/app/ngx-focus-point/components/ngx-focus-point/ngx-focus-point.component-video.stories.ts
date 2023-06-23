@@ -7,14 +7,15 @@ import {NgxFocusPointModule} from "../../ngx-focus-point.module";
 
 
 
-const NgxFocusPointComponentMeta: Meta<NgxFocusPointComponent | any> = {
-  title: 'Media/NGX Focus Point/Image',
+const NgxFocusPointComponentVideoMeta: Meta<NgxFocusPointComponent | any> = {
+  title: 'Media/NGX Focus Point/Video',
   tags: ['autodocs'],
   decorators: [
     moduleMetadata({
       imports: [NgxFocusPointModule],
     })
   ],
+
   component: NgxFocusPointComponent,
   argTypes: {
     focusX: {
@@ -28,13 +29,17 @@ const NgxFocusPointComponentMeta: Meta<NgxFocusPointComponent | any> = {
       description: 'Changes the displaid image.'
     }
   },
+
   render: (args) => {
     const {focusX, focusY,  ...props} = args;
+
     return {
       props,
       template:
         `<ngx-focus-point [focusX]="${args.focusX}" [focusY]="${args.focusY}" >
-            <img src="${args.url}">
+            <video>
+            <source src="${args.url}" type="video/mp4">
+            </video>
         </ngx-focus-point>`
     }
   },
@@ -45,24 +50,18 @@ const NgxFocusPointComponentMeta: Meta<NgxFocusPointComponent | any> = {
 
 
 
-export default NgxFocusPointComponentMeta;
+export default NgxFocusPointComponentVideoMeta;
 type Story = StoryObj<NgxFocusPointComponent>;
 
 type StoryType = NgxFocusPointComponent | any;
 
 
-export const NgxFocusPointImg1: StoryObj<StoryType> = {
+export const NgxFocusPointVideo1: StoryObj<StoryType> = {
   args: {
     focusX: 0,
     focusY: 0,
-    url: 'https://66.media.tumblr.com/8fd2436a90888b09af3c1eeefe8ef250/tumblr_p6ud1vgk6g1qjac96o1_1280.jpg',
+    url: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
   },
 };
 
-export const NgxFocusPointImg2: StoryObj<StoryType> = {
-  args: {
-    focusX: 0,
-    focusY: 0.4,
-    url: 'https://i.pinimg.com/originals/8c/31/78/8c31784ff80e298290207f6745107b73.jpg',
-  },
-};
+
