@@ -25,7 +25,7 @@ const NgxFocusPointComponentMeta: Meta<NgxFocusPointComponent | any> = {
     },
     url: {
       control: 'text',
-      description: 'Changes the displaid image.'
+      description: 'Changes the displayed image.'
     }
   },
   render: (args) => {
