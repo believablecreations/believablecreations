@@ -2,7 +2,6 @@ import type {Meta, StoryObj} from '@storybook/angular';
 import {moduleMetadata} from "@storybook/angular";
 import {NgxFocusPointComponent} from "./ngx-focus-point.component";
 import {NgxFocusPointModule} from "../../ngx-focus-point.module";
-import {NgxFocusPointSelectComponent} from "../ngx-focus-point-select/ngx-focus-point-select.component";
 
 type StoryType = NgxFocusPointComponent
 export default {
