@@ -2,6 +2,7 @@ import type {Meta, StoryObj} from '@storybook/angular';
 import {moduleMetadata} from "@storybook/angular";
 import {NgxFocusPointComponent} from "./ngx-focus-point.component";
 import {NgxFocusPointModule} from "../../ngx-focus-point.module";
+import {NgxFocusPointSelectComponent} from "../ngx-focus-point-select/ngx-focus-point-select.component";
 
 type StoryType = NgxFocusPointComponent
 export default {
@@ -19,7 +20,8 @@ export default {
     return {
       props,
       template:
-        `<ngx-focus-point><img src="https://66.media.tumblr.com/8fd2436a90888b09af3c1eeefe8ef250/tumblr_p6ud1vgk6g1qjac96o1_1280.jpg">
+        `<ngx-focus-point [focusX]="${args.focusX}" [focusY]="${args.focusY}" >
+            <img src="https://66.media.tumblr.com/8fd2436a90888b09af3c1eeefe8ef250/tumblr_p6ud1vgk6g1qjac96o1_1280.jpg">
         </ngx-focus-point>`
     }
   },
