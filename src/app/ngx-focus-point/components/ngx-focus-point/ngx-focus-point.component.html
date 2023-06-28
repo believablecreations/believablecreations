@@ -1,1 +1,4 @@
 <ng-content></ng-content>
+<ng-container *ngIf="OnErrors$ | async"></ng-container>
+<ng-container *ngIf="onParentResize$ | async"></ng-container>
+<ng-container *ngIf="OnMediaLoad$ | async"></ng-container>

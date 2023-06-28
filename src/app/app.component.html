@@ -38,7 +38,6 @@
     animation='1s'
     [focusX]="position?.x"
     [focusY]="position?.y"
-    [scale]='position?.s'
   >
     <img
       [src]="
@@ -52,7 +51,7 @@
 
 <ngx-focus-point class="small" [focusX]="position?.x"
                  [focusY]="position?.y"
-                 [scale]='position?.s'
+
 >
   <img
     [src]="
@@ -64,11 +63,12 @@
 </ngx-focus-point>
 
 
-<ngx-focus-point class="large" [focusX]="position?.x"
+<ngx-focus-point   animation='1s' class="large" [focusX]="position?.x"
                  [focusY]="position?.y"
-                 [scale]='position?.s'
+
 >
   <img
+
     [src]="
       src.value
     "
