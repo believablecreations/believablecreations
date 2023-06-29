@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {Injectable, NgZone} from "@angular/core";
 
 interface Size {
   width: number;
@@ -14,7 +14,7 @@ export class OnResizeService {
   public elements: Array<HTMLElement> | undefined;
   private animationFrameHandle: undefined | any;
 
-  constructor() {
+  constructor(private zone: NgZone) {
   }
 
   public onResize(htmlElements: Array<HTMLElement>): Array<HTMLElement> {
@@ -46,9 +46,10 @@ export class OnResizeService {
 
 
       if (this.isWindowAvailable()) {
-        this.animationFrameHandle = requestAnimationFrame(() => this.start(true));
+
+        this.zone.runOutsideAngular(() => this.animationFrameHandle = requestAnimationFrame(() => this.start(true)));
       } else {
-        this.animationFrameHandle = setTimeout(() => this.start(true), 1000 / 60);
+        this.zone.runOutsideAngular(() => this.animationFrameHandle = setTimeout(() => this.start(true), 1000 / 60));
       }
     } catch (e) {
     }

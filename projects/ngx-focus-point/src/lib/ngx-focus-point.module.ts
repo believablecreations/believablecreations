@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { NgxFocusPointComponent } from './ngx-focus-point.component';
 import { NgxFocusPointSelectComponent } from './ngx-focus-point-select.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import {OnResizeService} from "./on-resize.service";
+
 
 
 @NgModule({
   declarations: [NgxFocusPointComponent, NgxFocusPointSelectComponent],
+  providers: [OnResizeService],
   imports: [
     CommonModule,
     ReactiveFormsModule

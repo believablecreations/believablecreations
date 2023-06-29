@@ -1,4 +1,4 @@
-import { BrowserModule } from '@angular/platform-browser';
+import {BrowserModule, provideClientHydration} from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -14,7 +14,8 @@ import { ReactiveFormsModule } from '@angular/forms';
     NgxFocusPointModule,
     ReactiveFormsModule,
   ],
-  providers: [],
+  providers: [provideClientHydration()],
+
   bootstrap: [AppComponent],
 })
 export class AppModule {

@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {Injectable, NgZone} from "@angular/core";
 
 interface Size {
   width: number;
@@ -14,7 +14,7 @@ export class OnResizeService {
   public elements: Array<HTMLElement> | undefined;
   private animationFrameHandle: undefined | any;
 
-  constructor() {
+  constructor(private zone: NgZone) {
   }
 
   public onResize(htmlElements: Array<HTMLElement>): Array<HTMLElement> {
@@ -34,20 +34,20 @@ export class OnResizeService {
           const previousSize = this.getDataFromElement(element, this.sizeCacheKey);
           const currentSize = this.getSizeFromElement(element);
           if (previousSize && this.checkSizeDiff(currentSize, previousSize)) {
-            element.dispatchEvent(
-              new CustomEvent(this.resizeEventName, {
-                detail: currentSize
-              })
-            );
+            element.dispatchEvent(new CustomEvent(this.resizeEventName, {
+              detail: currentSize
+            }));
           }
 
           this.setDataInElement(element, this.sizeCacheKey, currentSize);
         });
 
+
       if (this.isWindowAvailable()) {
-        this.animationFrameHandle = requestAnimationFrame(() => this.start(true));
+
+        this.zone.runOutsideAngular(() => this.animationFrameHandle = requestAnimationFrame(() => this.start(true)));
       } else {
-        this.animationFrameHandle = setTimeout(() => this.start(true), 1000 / 60);
+        this.zone.runOutsideAngular(() => this.animationFrameHandle = setTimeout(() => this.start(true), 1000 / 60));
       }
     } catch (e) {
     }
@@ -103,13 +103,11 @@ export class OnResizeService {
     try {
       const computedStyles = window.getComputedStyle(element);
       return {
-        width: parseInt(computedStyles.width, 10),
-        height: parseInt(computedStyles.height, 10)
+        width: parseInt(computedStyles.width, 10), height: parseInt(computedStyles.height, 10)
       };
     } catch (e) {
       return {
-        width: 0,
-        height: 0
+        width: 0, height: 0
       };
     }
   }
