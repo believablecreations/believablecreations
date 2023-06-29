@@ -44,17 +44,6 @@ export class OnResizeService {
           this.setDataInElement(element, this.sizeCacheKey, currentSize);
         });
 
-      // this.app.isStable.pipe(first((isStable) => isStable === true)).subscribe((isStable) => {
-      //   if (isStable) {
-      //     if (this.isWindowAvailable()) {
-      //       this.animationFrameHandle = requestAnimationFrame(() => this.start(true));
-      //     } else {
-      //       this.animationFrameHandle = setTimeout(() => this.start(true), 1000 / 60);
-      //     }
-      //   } else {
-      //     this.stop();
-      //   }
-      // });
       if (this.isWindowAvailable()) {
         this.animationFrameHandle = requestAnimationFrame(() => this.start(true));
       } else {

@@ -2,18 +2,28 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  Inject,
   Input,
   OnChanges,
-  OnDestroy,
   OnInit,
   Output,
+  PLATFORM_ID,
   SimpleChanges,
 } from '@angular/core';
-import { fromEvent, Subscription } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import {
+  combineLatest,
+  debounceTime,
+  fromEvent,
+  map,
+  merge,
+  Observable,
+  startWith,
+  tap,
+} from 'rxjs';
 
-import { OnResizeService } from './on-resize.service';
-import {PlatformService} from './platform.service';
+
+import { isPlatformBrowser } from '@angular/common';
+import {OnResizeService} from "./on-resize.service";
 
 @Component({
   selector: 'ngx-focus-point',
@@ -21,148 +31,134 @@ import {PlatformService} from './platform.service';
   styleUrls: ['./ngx-focus-point.component.scss'],
   providers: [OnResizeService],
 })
-export class NgxFocusPointComponent implements OnInit, OnDestroy, OnChanges {
+export class NgxFocusPointComponent implements OnInit, OnChanges {
   @Input() width?: string;
   @Input() height?: string;
   @Input() focusX: number | undefined = 0.0;
   @Input() focusY: number | undefined = 0.0;
   @Input() animation: string | undefined;
-  @Input() scale: number | undefined = 1;
+  @Input() scale = 1;
   @Output() error = new EventEmitter<Event>();
-  public maxWidth = 0;
-  public maxHeight = 0;
-  public imagePositionLeft: string | number | undefined;
-  public imagePositionTop: string | number | undefined;
-  private containerWidth: number | undefined;
-  private containerHeight: number | undefined;
-  private imageWidth: number | undefined;
-  private imageHeight: number | undefined;
-  private ComponentElements: HTMLElement | undefined;
-  private MediaElement: HTMLImageElement | HTMLVideoElement | undefined;
-  private imageSubscription: Subscription | undefined;
-  private resizeSub$: Subscription | undefined;
-  private imageErrorSubscription: Subscription | undefined;
-  private previousSrc: any;
+  public onParentResize$: Observable<any> | undefined;
+  public OnMediaLoad$: Observable<any> | undefined;
+  public OnErrors$: Observable<any> | undefined;
+  private ComponentElement: HTMLElement | undefined;
+  private MediaElements:
+    | Array<HTMLImageElement | HTMLVideoElement | HTMLElement>
+    | undefined;
   private css = `
-        z-index: inherit;
+        width: auto !important;
+        height: auto !important;
+        z-index: inherit !important;
         position: absolute;
-        left: 0;
-        top: 0;
-        margin: 0;
-        padding: 0;
-        display: block;
-        width: auto;
-        height: auto;
-        min-width: 100%;
-        min-height: 100%;
-        max-height: none;
-        max-width: none;
-        backface-visibility: hidden;
-        transform: translate3d(0%, 0%, 0);
+        left: 0 !important;
+        top: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        min-width: 100% !important;
+        min-height: 100% !important;
+        max-height: none !important;
+        max-width: none !important;
+        backface-visibility: hidden !important;
+        transform: translate3d(0%, 0%, 0) !important;
     `;
   private initCss = `transform: none;`;
 
   constructor(
     private elRef: ElementRef,
     private onResizeSvc: OnResizeService,
-    public platformSvc: PlatformService
-  ) {
-    if (!this.focusX) {
-      this.focusX = 0.0;
-    }
-    if (!this.focusY) {
-      this.focusY = 0.0;
-    }
-  }
+    @Inject(PLATFORM_ID) private platformID: object
+  ) {}
 
   ngOnInit() {
-    if (this.platformSvc.isPlatformBrowser) {
+    if (isPlatformBrowser(this.platformID)) {
       this.css = this.animation
         ? this.css +
         `transition: left ${this.animation}, top ${this.animation} ease-in-out;`
         : this.css;
 
-      this.ComponentElements = this.elRef.nativeElement;
-      this.MediaElement = this.ComponentElements?.querySelector(
-        'img'
-      ) as HTMLImageElement;
-      if (!this.MediaElement) {
-        this.MediaElement = this.ComponentElements?.querySelector(
-          'video'
-        ) as HTMLVideoElement;
-        if (this.MediaElement.hasAttribute('muted')) {
-          this.MediaElement.muted = true;
-        }
-        this.imageErrorSubscription = fromEvent(this.MediaElement, 'error')
-          .pipe(tap((error) => this.error.emit(error)))
-          .subscribe();
+      this.ComponentElement = this.elRef.nativeElement;
 
-        this.imageSubscription = fromEvent(this.MediaElement, 'loadeddata')
-          .pipe(
-            tap((event) => {
-              // Prep for when img src changes.
-              (this.MediaElement as HTMLElement).style.cssText = this.initCss;
-              this.MediaElement?.classList?.add('focus-point');
-              (this.MediaElement as HTMLElement).style.cssText = this.css;
-              this.imageHeight = this.MediaElement?.offsetHeight;
-              this.imageWidth = this.MediaElement?.offsetWidth;
-              this.adjustFocus();
-              this.previousSrc = this.MediaElement?.getAttribute('src');
-            })
-          )
-          .subscribe();
-      } else {
-        this.imageErrorSubscription = fromEvent(this.MediaElement, 'error')
-          .pipe(tap((error) => this.error.emit(error)))
-          .subscribe();
-        this.imageSubscription = fromEvent(this.MediaElement, 'load')
-          .pipe(
-            tap((event) => {
-              // Prep for when img src changes.
-              (this.MediaElement as HTMLElement).style.cssText = this.initCss;
-              this.MediaElement?.classList?.add('focus-point');
-              (this.MediaElement as HTMLElement).style.cssText = this.css;
-              this.imageHeight = this.MediaElement?.offsetHeight;
-              this.imageWidth = this.MediaElement?.offsetWidth;
-              this.adjustFocus();
-              this.previousSrc = this.MediaElement?.getAttribute('src');
-            })
-          )
-          .subscribe();
-      }
+      this.MediaElements = [
+        ...(this.ComponentElement?.querySelectorAll('img, video') as any),
+      ];
+
+      this.MediaElements.forEach((element) => {
+        element.style.cssText = this.initCss;
+        element.style.cssText = this.css;
+        element.classList?.add('focus-point');
+        const parentElement = element.parentElement as HTMLElement;
+        if (
+          element.tagName === 'IMG' &&
+          parentElement.tagName !== this.ComponentElement?.tagName
+        ) {
+          parentElement.style.cssText = `display: contents;`;
+        }
+        this.AdjustFocusOnElement(
+          this.ComponentElement as HTMLElement,
+          element as HTMLElement
+        );
+      });
+
+      const errors: Array<Observable<Event>> = this.MediaElements.map(
+        (element) => fromEvent(element, 'error')
+      );
+
+      this.OnErrors$ = merge(...errors).pipe(
+        tap((event) => console.warn(event)),
+        tap((event) => this.error.emit(event))
+      );
+
+      // Get all media elements.
+      const observables: Array<Observable<HTMLElement>> =
+        this.MediaElements.map((element) => {
+          if (element.tagName === 'IMG') {
+            const ImageElement = element as HTMLVideoElement;
+            return fromEvent(ImageElement, 'load').pipe(
+              startWith(null),
+              map((event) => element)
+            );
+          }
+
+          if (element.tagName === 'VIDEO') {
+            const VideoElement = element as HTMLVideoElement;
+            VideoElement.muted = true;
+            return fromEvent(VideoElement, 'loadeddata').pipe(
+              startWith(null),
+              map((event) => element)
+            );
+          }
+          (element.parentElement as HTMLElement).style.cssText = `
+          display: initial;
+        `;
+          return null;
+        }).filter((observable) => !!observable) as Array<
+          Observable<HTMLElement>
+        >;
+
+      this.OnMediaLoad$ = combineLatest(observables).pipe(
+        debounceTime(100),
+        tap((elements) => {
+          elements.forEach((element) => {
+            this.AdjustFocusOnElement(
+              this.ComponentElement as HTMLElement,
+              element as HTMLElement
+            );
+          });
+        })
+      );
 
       const elements = this.onResizeSvc.onResize([
-        this.ComponentElements as HTMLElement,
+        this.ComponentElement as HTMLElement,
       ]);
-      this.resizeSub$ = fromEvent(elements[0], 'resize')
-        // const resize = new OnResize([this.ComponentElements]);
-        // this.resizeSub$ = fromEvent(resize.elements[0], 'resize')
+
+      this.onParentResize$ = fromEvent(elements[0], 'resize')
         .pipe(
           tap((event) => {
-            this.adjustFocus();
+            this.AdjustElements(this.MediaElements as Array<HTMLElement>);
           })
-        )
-        .subscribe();
-    }
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    this.adjustFocus();
-  }
-
-  ngOnDestroy(): void {
-    try {
-      if (this.imageErrorSubscription) {
-        this.imageErrorSubscription.unsubscribe();
-      }
-      if (this.resizeSub$) {
-        this.resizeSub$.unsubscribe();
-      }
-      if (this.imageSubscription) {
-        this.imageSubscription.unsubscribe();
-      }
-    } catch (e) {
-      console.warn(e);
+        );
     }
   }
 
@@ -199,37 +195,57 @@ export class NgxFocusPointComponent implements OnInit, OnDestroy, OnChanges {
     return (focusOffset * -100) / containerSize;
   }
 
-  private adjustFocus() {
-    if (this.ComponentElements) {
-      this.containerHeight = this.ComponentElements.offsetHeight;
-      this.containerWidth = this.ComponentElements.offsetWidth;
+  ngOnChanges(changes: SimpleChanges): void {
+    if ((this.MediaElements as Array<HTMLElement>)?.length > 0) {
+      this.AdjustElements(this.MediaElements as Array<HTMLElement>);
+    }
+  }
 
+  private AdjustElements(elements: Array<HTMLElement>) {
+    elements.forEach((element) => {
+      this.AdjustFocusOnElement(
+        this.ComponentElement as HTMLElement,
+        element as HTMLElement
+      );
+    });
+  }
+
+  private AdjustFocusOnElement(
+    ComponentElement: HTMLElement,
+    MediaElement: HTMLElement
+  ) {
+    if (ComponentElement) {
+      MediaElement.style.maxHeight = '';
+      MediaElement.style.maxWidth = '';
+      let containerWidth = ComponentElement.offsetWidth;
+      let containerHeight = ComponentElement.offsetHeight;
+      let mediaHeight =
+        (MediaElement as any).naturalHeight ||
+        (MediaElement as any).offsetHeight;
+      let mediaWidth =
+        (MediaElement as any).naturalWidth || (MediaElement as any).offsetWidth;
       let hShift: string | number = 0;
       let vShift: string | number = 0;
 
-      const wR = (this.imageWidth as number) / this.containerWidth;
-      const hR = (this.imageHeight as number) / this.containerHeight;
-
-      (this.MediaElement as HTMLElement).style.maxHeight = '';
-      (this.MediaElement as HTMLElement).style.maxWidth = '';
+      const wR = (mediaWidth as number) / containerWidth;
+      const hR = (mediaHeight as number) / containerHeight;
 
       if (
-        (this.imageWidth as number) > this.containerWidth &&
-        (this.imageHeight as number) > this.containerHeight
+        (mediaWidth as number) > containerWidth &&
+        (mediaHeight as number) > containerHeight
       ) {
         if (wR > hR) {
-          this.maxHeight = 100;
-          (this.MediaElement as HTMLElement).style.maxHeight = '100%';
+          (MediaElement as HTMLElement).style.maxHeight = '100%';
         } else {
-          this.maxWidth = 100;
-          (this.MediaElement as HTMLElement).style.maxWidth = '100%';
+          (MediaElement as HTMLElement).style.maxWidth = '100%';
         }
       }
+
       if (wR > hR) {
         hShift = this.calcShift(
           hR,
-          this.containerWidth,
-          this.imageWidth as number,
+          containerWidth,
+          mediaWidth,
           parseFloat(!this.focusX ? '0.0' : this.focusX.toString()),
           false,
           this.scale
@@ -237,34 +253,20 @@ export class NgxFocusPointComponent implements OnInit, OnDestroy, OnChanges {
       } else if (wR < hR) {
         vShift = this.calcShift(
           wR,
-          this.containerHeight,
-          this.imageHeight as number,
+          containerHeight,
+          mediaHeight,
           parseFloat(!this.focusY ? '0.0' : this.focusY.toString()),
           true,
           this.scale
         );
       }
+
       const Y = parseFloat(!this.focusY ? '0.0' : this.focusY.toString());
       const X = parseFloat(!this.focusX ? '0.0' : this.focusX.toString());
 
-      if (this.scale && this.scale > 1) {
-        // TODO: find max edge.
-        (this.MediaElement as HTMLElement).style.transform = `translateX(${
-          this.scale * (X * -50)
-        }%) translateY(${this.scale * (Y * 50)}%)  scale(${this.scale})`;
-        // this.MediaElement.style.transform = `scale(${this.scale})`;
-        (this.MediaElement as HTMLElement).style.left = `${hShift}%`;
-        (this.MediaElement as HTMLElement).style.top = `${vShift}%`;
-        this.imagePositionLeft = hShift;
-        this.imagePositionTop = vShift;
-      } else {
-        // this.MediaElement.style.transform = `translateX(${X}%) translateY(${Y}%) scale(${this.scale})`;
 
-        (this.MediaElement as HTMLElement).style.left = `${hShift}%`;
-        (this.MediaElement as HTMLElement).style.top = `${vShift}%`;
-        this.imagePositionLeft = hShift;
-        this.imagePositionTop = vShift;
-      }
+      (MediaElement as HTMLElement).style.left = `${hShift}%`;
+      (MediaElement as HTMLElement).style.top = `${vShift}%`;
     }
   }
 }

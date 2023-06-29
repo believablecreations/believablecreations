@@ -1,6 +1,6 @@
 {
   "name": "@believablecreations/ngx-focus-point",
-  "version": "15.0.1",
+  "version": "^16.0.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/believablecreations/believablecreations"
@@ -8,6 +8,7 @@
   "peerDependencies": {
     "@angular/common": "^15.0.1",
     "@angular/core": "^15.0.1",
+    "@angular/forms": "^15.0.1",
     "rxjs": "^7.5.7"
   }
 }

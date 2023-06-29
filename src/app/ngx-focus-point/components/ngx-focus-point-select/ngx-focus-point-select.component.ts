@@ -1,9 +1,10 @@
-import {Component, ElementRef, Input, OnInit, Output} from '@angular/core';
+import {Component, ElementRef, Inject, Input, OnInit, Output, PLATFORM_ID} from '@angular/core';
 import {fromEvent, Observable, Subject} from 'rxjs';
 import {tap} from 'rxjs/operators';
 import {PositionModel} from '../../models/position.model';
 import {FormControl, FormGroup} from '@angular/forms';
-import {PlatformService} from '../../services/platform.service';
+
+import {isPlatformBrowser} from "@angular/common";
 
 @Component({
   selector: 'ngx-focus-point-select',
@@ -32,11 +33,12 @@ export class NgxFocusPointSelectComponent implements OnInit {
   private MediaElement: HTMLImageElement | HTMLVideoElement | undefined;
   private TempImageElement: HTMLImageElement | undefined;
 
-  constructor(private platformSvc: PlatformService, private elRef: ElementRef) {
+  constructor( private elRef: ElementRef,
+               @Inject(PLATFORM_ID) private platformID: object) {
   }
 
   ngOnInit() {
-    if (this.platformSvc.isPlatformBrowser && this.src) {
+    if (isPlatformBrowser(this.platformID) && this.src) {
       this.TempImageElement = document.createElement('img');
       this.ComponentElements = this.elRef.nativeElement;
       this.MediaElement = this.ComponentElements?.querySelector(
