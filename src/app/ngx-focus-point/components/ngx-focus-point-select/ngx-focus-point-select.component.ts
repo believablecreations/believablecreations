@@ -12,7 +12,7 @@ import {isPlatformBrowser} from "@angular/common";
   styleUrls: ['./ngx-focus-point-select.component.scss'],
 })
 export class NgxFocusPointSelectComponent implements OnInit {
-  @Input() src: any;
+  @Input() src: string | undefined = '';
   @Input() selectPosition: Partial<PositionModel> = {x: 0.0, y: 0.0};
   @Input() scale = 1;
   @Input() enableScale = false;
